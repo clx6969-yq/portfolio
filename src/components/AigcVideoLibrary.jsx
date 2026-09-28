@@ -237,6 +237,18 @@ export default function AigcVideoLibrary() {
                     // 真正出画了才撤掉海报 —— 点播放到出第一帧之间的下载
                     // 等待时间,展示栏里一直是这张海报
                     onPlaying={() => setStarted(true)}
+                    // 镜像源加载失败(比如镜像站挂了)时,自动切到
+                    // videoSrcFallback(github.io 同源地址)再试一次。
+                    // dataset 标记防止两个源都失败时无限循环。
+                    onError={(e) => {
+                      const video = e.currentTarget;
+                      if (video.dataset.fallbackApplied) return;
+                      if (!current.videoSrcFallback) return;
+                      video.dataset.fallbackApplied = "1";
+                      video.src = current.videoSrcFallback;
+                      video.load();
+                      if (isPlaying) video.play().catch(() => {});
+                    }}
                     onEnded={() => {
                       setIsPlaying(false);
                       setElapsed(durationSeconds);
