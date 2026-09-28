@@ -54,6 +54,17 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      # 原画正片(448 MB)不放 git 仓库(blob 单文件上限 100 MB),
+      # 托管在本仓库 Release v1;构建时拉下来放进 dist,
+      # 让整个站点连同视频一起从 github.io 同源发出 ——
+      # 国内访问 github.com 会被重置,但 github.io 的 CDN 是通的。
+      - name: 拉取原画视频进 dist
+        run: |
+          mkdir -p dist/placeholders/videos
+          curl -fL --retry 3 -o dist/placeholders/videos/ego.mp4   "https://github.com/${GITHUB_REPOSITORY}/releases/download/v1/ego.mp4"
+          curl -fL --retry 3 -o dist/placeholders/videos/huolu.mp4 "https://github.com/${GITHUB_REPOSITORY}/releases/download/v1/huolu.mp4"
+          ls -lh dist/placeholders/videos/
+
       # 把 dist/ 整个目录打包上传给下一个 job 用。
       # path 不对的话 deploy-pages 会报 "no index.html found",
       # 这里和 vite 默认输出目录保持一致。
