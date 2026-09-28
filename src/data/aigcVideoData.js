@@ -49,12 +49,11 @@ export const aigcIntro = {
   year: "2026",
 };
 
-// 《己》《活路》的原画正片托管在本仓库 GitHub Release v1 的 Assets 里
-// (Pages 站点体积装不下 448 MB 的两个原片,Release 单文件上限 2 GB,
-// 且下载直链支持 HTTP Range,浏览器 <video> 可以边下边播、随意拖进度条)。
-// 本地 public/placeholders/videos/ 里不再放这两部的 mp4,播放源直接指向:
-const RELEASE_ASSETS = "https://github.com/clx6969-yq/portfolio/releases/download/v1";
-
+// 《己》《活路》的原画正片(448 MB)不走 git 仓库 —— 单文件超出 GitHub blob
+// 上限,所以托管在 Release v1;CI 构建 deploy.yml 会把它们拉进 dist/,
+// 最终和站点同源,从 github.io 直接发出(国内可直连,见 deploy.yml 注释)。
+// 本地 public/placeholders/videos/ 里也留有一份原片(不进仓库),dev server
+// 直接播本地文件。
 const videos = [
   {
     // slug 决定素材文件名:
@@ -102,8 +101,8 @@ export const aigcVideos = videos.map((video, index) => {
     cover: publicAsset(`/placeholders/${video.slug}-poster.jpg`),
     disc: publicAsset(`/placeholders/${video.slug}-poster.jpg`),
     poster: publicAsset(`/placeholders/${video.slug}-thumb.jpg`),
-    // 正片走 Release 原画直链(见文件头 RELEASE_ASSETS 说明);
-    // 海报 / 缩略图仍是本地静态文件,首屏不依赖外链。
-    videoSrc: `${RELEASE_ASSETS}/${video.slug}.mp4`,
+    // 正片从本地路径发出:线上由 CI 把 Release 原画拉进 dist 同源部署,
+    // 本地 dev 直接播 public/ 里的原片。
+    videoSrc: publicAsset(`/placeholders/videos/${video.slug}.mp4`),
   };
 });
