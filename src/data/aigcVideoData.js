@@ -51,9 +51,16 @@ export const aigcIntro = {
 
 // 《己》《活路》的原画正片(448 MB)不走 git 仓库 —— 单文件超出 GitHub blob
 // 上限,所以托管在 Release v1;CI 构建 deploy.yml 会把它们拉进 dist/,
-// 最终和站点同源,从 github.io 直接发出(国内可直连,见 deploy.yml 注释)。
-// 本地 public/placeholders/videos/ 里也留有一份原片(不进仓库),dev server
-// 直接播本地文件。
+// 从 github.io 同源发出。
+//
+// ⚠️ 国内直连 github.io 的带宽很不稳定(实测 19 KB/s ~ 2.5 MB/s 波动),
+// 而 gh-proxy.com 镜像走 Cloudflare 边缘,实测稳定 4 MB/s+。所以:
+//   生产环境 videoSrc 走镜像(起播快、拖动顺);
+//   videoSrcFallback 留同源地址,镜像挂了播放器 onError 自动切过去;
+//   本地 dev 直接播 public/ 里的原片(不依赖网络)。
+const RELEASE_URL = "https://github.com/clx6969-yq/portfolio/releases/download/v1";
+const VIDEO_MIRROR = "https://gh-proxy.com/" + RELEASE_URL;
+
 const videos = [
   {
     // slug 决定素材文件名:
@@ -101,8 +108,11 @@ export const aigcVideos = videos.map((video, index) => {
     cover: publicAsset(`/placeholders/${video.slug}-poster.jpg`),
     disc: publicAsset(`/placeholders/${video.slug}-poster.jpg`),
     poster: publicAsset(`/placeholders/${video.slug}-thumb.jpg`),
-    // 正片从本地路径发出:线上由 CI 把 Release 原画拉进 dist 同源部署,
-    // 本地 dev 直接播 public/ 里的原片。
-    videoSrc: publicAsset(`/placeholders/videos/${video.slug}.mp4`),
+    // 正片:生产走 gh-proxy 镜像(国内快),dev 走本地原片;
+    // videoSrcFallback 是 github.io 同源地址,镜像不可用时播放器自动切换。
+    videoSrc: import.meta.env.DEV
+      ? publicAsset(`/placeholders/videos/${video.slug}.mp4`)
+      : `${VIDEO_MIRROR}/${video.slug}.mp4`,
+    videoSrcFallback: publicAsset(`/placeholders/videos/${video.slug}.mp4`),
   };
 });
