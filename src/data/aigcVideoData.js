@@ -110,7 +110,9 @@ export const aigcVideos = videos.map((video, index) => {
     poster: publicAsset(`/placeholders/${video.slug}-thumb.jpg`),
     // 正片:生产走 gh-proxy 镜像(国内快),dev 走本地原片;
     // videoSrcFallback 是 github.io 同源地址,镜像不可用时播放器自动切换。
-    videoSrc: import.meta.env.DEV
+    // (import.meta.env 用 ?. 访问 —— node:test 直接 import 本文件时
+    // import.meta.env 是 undefined,不 ?. 会在模块加载阶段就抛错。)
+    videoSrc: import.meta.env?.DEV
       ? publicAsset(`/placeholders/videos/${video.slug}.mp4`)
       : `${VIDEO_MIRROR}/${video.slug}.mp4`,
     videoSrcFallback: publicAsset(`/placeholders/videos/${video.slug}.mp4`),
