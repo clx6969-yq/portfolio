@@ -43,8 +43,16 @@ jobs:
       # 跑全量校验:test + build + privacy:check。
       # verify 通过才进 deploy 阶段 —— 任何一项失败这次提交
       # 就不会上线,而不是 build 过了但带病部署。
+      #
+      # ⚠️ BASE_URL 必须在这里显式注入:verify 里的 build 步骤在
+      # Configure Pages 之前跑,不注入的话 vite 用默认 base="/",
+      # 部署到 /portfolio/ 子路径后 HTML 里的 /assets/*.js 缺前缀,
+      # 浏览器 404 → 整页白屏。
+      # 本仓库是普通仓库 <用户名>.github.io/portfolio/,对应 /portfolio/。
       - name: 校验(测试 / 构建 / 隐私扫描)
         run: npm run verify
+        env:
+          BASE_URL: /portfolio/
 
       # 这一步会自动设 BASE_URL 环境变量到仓库对应的子路径:
       #   - 根用户名仓库 "<用户名>.github.io"  →  BASE_URL = "/"
