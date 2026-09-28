@@ -1,0 +1,88 @@
+.tilt-card-wrap {
+  perspective: 1400px;
+  width: 100%;
+  max-width: 440px;
+  cursor: pointer;
+}
+
+.tilt-card-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  /* 原来这里是 rgba(0,0,0,0.55)、半径 30/50 的重投影,是为"深色卡片 +
+     深色背景"那套设计调的。现在换成白底真实证件照、板块背景又是偏亮的
+     草地照,同样的参数会糊成一团脏影,所以换成偏墨蓝、更小半径的一层,
+     跟照片上的墨色细描边是同一个色系。 */
+  filter: drop-shadow(0 18px 34px rgba(15, 39, 57, 0.32));
+  will-change: transform;
+}
+
+.tilt-card-inner .profile-id-card-img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  filter: none;
+  /* 证件照是白底的矩形照片,不再是原来那张带透明背景、斜着摆的占位
+     卡片,所以要自己给一个"照片边界"。
+     注意:描边用的是极淡的墨色,不是白色 —— 这个板块的背景是一张偏亮
+     的草地照片,白色描边在上面完全看不见,照片会糊进背景里(实测就是
+     这个效果)。投影交给父级 .tilt-card-inner 的 drop-shadow,这里只画
+     那圈细线,免得两层阴影叠在一起发脏。
+     半径只给 12px:卡片会跟着鼠标做 3D 倾斜,圆角太大斜过来时会像软糖。 */
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(27, 51, 72, 0.18);
+}
+
+/* 跟着鼠标位置移动的那一小片高光 */
+.tilt-card-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  /* 圆角要跟 .profile-id-card-img 保持一致,否则高光的四个直角会
+     从照片的圆角外面露出一小点白边。 */
+  border-radius: 12px;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* 划过去的时候扫过卡片表面的那道"彗星"光斑 */
+.tilt-card-comet {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  /* 同上:圆角跟照片对齐,不然光斑会在四角溢出。 */
+  border-radius: 12px;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.6) 48%,
+    rgba(160, 205, 242, 0.35) 53%,
+    transparent 66%
+  );
+  background-size: 260% 260%;
+  background-position: -70% -70%;
+  transition: background-position 1.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.tilt-card-wrap:hover .tilt-card-comet {
+  background-position: 170% 170%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card-inner,
+  .tilt-card-comet {
+    transition: none;
+  }
+}

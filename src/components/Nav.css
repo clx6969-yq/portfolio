@@ -1,0 +1,76 @@
+.nav-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 40px), var(--content-width));
+  z-index: 100;
+  border-radius: 999px;
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 14px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-logo-mark {
+  display: block;
+  width: 34px;
+  height: 34px;
+  /* 方形特写头像,object-fit: cover 保证容器是正方形时不会被压扁;
+     flex-shrink: 0 防止窄屏下被右侧的导航项挤变形。 */
+  object-fit: cover;
+  flex-shrink: 0;
+  /* 插画是白底的,导航栏又是浅色玻璃,不描边的话头像会糊进背景。
+     一圈极淡的墨色细线足够勾出边界,不做投影以免在玻璃上显脏。 */
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(27, 51, 72, 0.14);
+}
+
+.nav-logo-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .nav-logo-text {
+    display: inline-block;
+  }
+}
+
+.nav-links {
+  display: none;
+  gap: 28px;
+}
+
+@media (min-width: 900px) {
+  .nav-links {
+    display: flex;
+  }
+}
+
+.nav-link {
+  color: var(--text-dim);
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text);
+}
+
+.nav-contact {
+  padding: 10px 20px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

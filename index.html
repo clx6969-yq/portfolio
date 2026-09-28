@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 标签页图标换成头像插画的方形特写(和导航栏左上角 .nav-logo-mark
+         用的是同一张图)。原来是一张占位 SVG。 -->
+    <link rel="icon" href="%BASE_URL%placeholders/site-icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%placeholders/site-icon.png" />
+    <meta name="description" content="蔡灵潇 · 新媒体运营 / 内容创意 个人作品集" />
+    <meta name="theme-color" content="#f2f8fd" />
+    <!-- 首屏(hero)的主视觉就是这张全站背景图,提前拉起来,
+         免得开屏动画播完、正文挂载之后还要看着底色等图片。 -->
+    <link
+      rel="preload"
+      as="image"
+      href="%BASE_URL%placeholders/backgrounds/summer-meadow.jpg"
+    />
+    <title>蔡灵潇 · 个人作品集</title>
+    <!-- 字体全部本地托管,见 src/fonts.css:
+         拉丁字形(Caveat / Unbounded / Space Mono)用 public/fonts/ 里的 woff2,
+         中文字形走系统字体。
+         这里刻意不再引 Google Fonts —— 那个 <link rel="stylesheet"> 是渲染阻断
+         资源,大陆网络下 fonts.googleapis.com 经常连不上或超时,页面会一直
+         白屏等它,所以整段(含两个 preconnect)都删掉了。 -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

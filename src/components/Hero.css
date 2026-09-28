@@ -1,0 +1,307 @@
+/* ============================================================
+   首页首屏 Hero
+   ------------------------------------------------------------
+   排版目标:
+   - 整块内容垂直居中,"个人作品集"成为首页的视觉主体;
+   - 主标题不是文字,是用户提供的毛笔字图片(透明底笔触当 mask,
+     底下垫一层晴空蓝渐变 —— 见下面 .hero-brush 那一段);
+   - 周围文字(eyebrow / 姓名 / 职位 / 联系方式)整体下调一档,
+     把舞台让给主标题;
+   - 用 min-height 而不是固定 height:内容比一屏高的时候会自然把
+     首屏撑开,不会被裁掉;
+   - 主标题不再做 scaleY 纵向拉伸——中文被拉长之后笔画会糊成一团。
+   ============================================================ */
+
+.hero-region {
+  position: relative;
+  min-height: 100vh;
+}
+
+.hero-sticky {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 整体居中,让主标题成为视觉中心 */
+  min-height: 100vh;
+  overflow: hidden;
+  /* 顶部避开固定导航条。这个 padding 必须加在居中容器上,不能加到
+     .hero-content 上:justify-content 居中的是整个 flex item(含它
+     自己的 padding),给内容加 padding-top 只会把它撑高,并不会让
+     整块下移 —— 之前试过,顶部那行小字照样被导航压住。 */
+  padding-top: 88px;
+  /* 故意不给底色:首屏要完整露出全站背景图(.site-backdrop,固定
+     铺满视口、压在 z-index:-1 上),这里一旦有底色就会把它整块盖住。
+     以前那一层"模板占位底图"已经删掉了——现在首屏的视觉就是那张
+     草原图本身,不需要再叠一张。 */
+  background: transparent;
+}
+
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /* 只在底部压一条白纱(色值就是 --bg 的天光白),保证标题文字可读;
+     画面上半部分基本不遮挡,天空和云保持通透。
+     最后一个色标直接复用 --bg-veil —— 也就是下面每个板块压的那层纱,
+     这样首屏和第二个板块交界处不会出现一条色阶。
+     中段比原来的 0.06 提到 0.34 起步,是因为标题现在压在草地上,
+     草地本身很亮,纱太薄的话蓝字会糊在绿色里。
+
+     后段(68% / 84%)跟着 --bg-veil 一起从 0.62 / 0.76 降到
+     0.46 / 0.55:底色纱变薄之后,如果这里还留着 0.76,首屏底部
+     反而比它下面的板块更白,交界处会显出一条横向亮带。
+     现在 0.34 → 0.46 → 0.55 → --bg-veil(0.60) 一路单调加深,
+     收口是连续的。 */
+  background: linear-gradient(
+    180deg,
+    rgba(242, 248, 253, 0) 0%,
+    rgba(242, 248, 253, 0.05) 34%,
+    rgba(242, 248, 253, 0.34) 52%,
+    rgba(242, 248, 253, 0.46) 68%,
+    rgba(242, 248, 253, 0.55) 84%,
+    var(--bg-veil) 100%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  /* 整块居中排版,让"个人作品集"成为首页视觉中心 */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-title-block {
+  max-width: 100%;
+  font-weight: 900;
+  /* 三个标题行作为列堆叠,但每行宽度收缩到 fit-content,
+     再由 align-items: center 把它们水平居中 —— 这样渐变文字 /
+     drop-shadow / 两侧装饰线都只包裹实际文字宽度,不会拉满整版 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 第一行:小标签,2026 精选作品 —— 比主标题小一档,做点装饰性铺垫。
+   两点说明:
+   1. 颜色用 --text 而不是 --text-dim:这行字现在被居中排版顶到了天空
+      那片饱和蓝上,灰蓝在蓝底上几乎看不见,压到深墨蓝才读得出来;
+   2. 选择器多带一层 .hero-title-block:这个元素同时挂着 .mono-label,
+      而 .mono-label 里也定义了 color / font-size。两者优先级相同,谁
+      生效纯看打包后的源码顺序 —— 不加这一级,这里的颜色和字号会被
+      .mono-label 悄悄盖掉。 */
+.hero-title-block .hero-eyebrow {
+  display: inline-block;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--text);
+  opacity: 0.92;
+}
+
+/* 第二、三行:大标题。两行共用同一套字体,只有颜色和字号不同。
+   width: fit-content + 父级 align-items:center 让它们收缩到文字宽度并
+   水平居中 —— 给渐变 / drop-shadow / 两侧装饰线一个紧凑的盒模型。 */
+.hero-title-line {
+  display: block;
+  width: fit-content;
+  font-family: var(--font-hero);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* 个人作品集 —— 毛笔字标题,首页的视觉焦点。
+   ------------------------------------------------------------
+   素材 public/placeholders/brush-portfolio.png 是"透明底 + 黑色笔触"
+   的 PNG(由用户给的毛笔字原图去掉白底生成:alpha = 255 - 亮度,
+   所以飞白/枯笔的灰阶都保留成了半透明,边缘不会有硬锯齿)。
+
+   这里没有把它当普通 <img> 贴上去,而是当"镂空模板"用(CSS mask):
+   .hero-brush-ink 铺一层晴空蓝渐变,再用 mask 把笔触以外的地方挖空 ——
+   于是笔画的形状来自原图,颜色却由网站主题变量给。以后想换色只改
+   下面 background 那一行,不用重新导图,也不用为每个色号存一份素材。
+
+   为什么不用文字 + 字体:手写行书的笔锋、连笔、飞白没有任何网页字体
+   能还原,用字体只能得到"字形接近但气质完全不同"的结果。
+
+   揭示动画:外层用 clip-path 从左往右扫出来。选 clip-path 而不是
+   逐帧改透明度,是因为 inset() 在 Chrome 里可以直接交给合成器,
+   动画期间不会触发重排/重绘整块内容。 */
+.hero-brush {
+  position: relative;
+  display: block;
+  width: clamp(240px, 48vw, 760px);
+  aspect-ratio: 924 / 551; /* 与素材实际像素比一致,不留多余空白 */
+  margin: 10px 0 8px;
+  /* 动画起点:整块先藏起来,加了 .is-revealed 才扫出来 */
+  clip-path: inset(0 100% 0 0);
+  /* drop-shadow 放在这一层(而不是 ink 那层):滤镜作用在 mask 之后的
+     渲染结果上,所以阴影是沿着真实笔触轮廓投的,是"字"的影子而不是
+     一个矩形。
+     第一层是 0 偏移、1.5px 的白色锐边 —— 这是"让字跳出来"的关键。
+     标题上半截压在饱和的蓝天上,而笔触本身也是蓝色,只靠明度差怎么调
+     都在 2:1 附近打转、始终发闷;这一圈白边等于给笔锋垫了一张"纸",
+     边缘对比一下拉开,填充色才敢往亮里走。
+     白边刻意只留 1.5px、不做大半径外扩 —— 试过 6px 的柔光版,飞白和
+     细笔尖被糊成一团,看着像廉价的描边字体,笔锋的锐度全丢了。
+     第二层是投影。维持两层也是为了揭示动画那 0.9 秒不掉帧。 */
+  filter:
+    drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 8px 20px rgba(15, 39, 57, 0.2));
+}
+
+.hero-brush.is-revealed {
+  animation: hero-brush-wipe 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes hero-brush-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* 墨色本身:一层渐变 + 来自素材的 mask。mask-image 由 JSX 注入
+   (走 publicAsset(),这样子路径部署也不会失效)。 */
+.hero-brush-ink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* 蓝调。经过几轮来回确认的定稿:饱和宝蓝 #1c5183 → --accent →
+     浅蓝 #6fb0e4,再配上那圈 1.5px 白色锐边 —— 这是用户点头的一版,
+     比它更深的(#0f2739 近黑)嫌闷,比它更浅的(全浅蓝档)嫌飘。
+     方向仍取 160deg —— 左上略深、右下偏亮,顺着背景图"左上饱和的天、
+     右下云的留白"走。 */
+  background: linear-gradient(
+    160deg,
+    #1c5183 0%,
+    #2d70ae 38%,
+    var(--accent) 75%,
+    #6fb0e4 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* 蔡灵潇 —— 主标题的艺术字已经够抢眼,姓名退到副位,避免抢戏 */
+.hero-title-line--plain {
+  margin-top: 18px;
+  font-size: clamp(20px, 2.6vw, 36px);
+  color: var(--text);
+  letter-spacing: 0.16em;
+  font-weight: 700;
+}
+
+/* 打字机光标——细细一条竖线,不停闪烁,像真的打字机/终端在敲字 */
+.hero-type-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  margin-left: 4px;
+  background: var(--accent);
+  vertical-align: -0.05em;
+  animation: hero-cursor-blink 0.85s steps(1) infinite;
+}
+
+@keyframes hero-cursor-blink {
+  0%, 45% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.hero-roles {
+  list-style: none;
+  /* 整张海报要居中,小列表自己也收缩到文字宽度再居中;
+     保留左侧竖线,只把整个块放进视觉中心,不会拉满整版 */
+  margin: 22px auto 0;
+  padding: 0 0 0 18px;
+  border-left: 1px solid var(--glass-border);
+  align-self: center;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+}
+
+.hero-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 38px;
+  flex-wrap: wrap;
+}
+
+.hero-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.hero-scroll-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.hero-scroll-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(27, 51, 72, 0.28);
+  color: var(--text);
+  animation: hero-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes hero-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@media (max-width: 700px) {
+  .hero-sticky {
+    padding-top: 84px;
+  }
+  .hero-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .hero-title-line--accent {
+    /* 移动端 184px 字号下,两侧装饰短横和渐变阴影容易挤;
+       缩小字号上限,同时收一点旋转角度,保持小屏上的可读性 */
+    letter-spacing: 0.04em;
+    transform: rotate(-1deg);
+    padding: 6px 10px;
+  }
+  .hero-title-line--accent::before,
+  .hero-title-line--accent::after {
+    /* 移动端两侧空间紧,装饰短横再短一点,避免挤出视口 */
+    width: clamp(18px, 6vw, 50px);
+  }
+  .hero-bottom-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-scroll-indicator {
+    align-items: center;
+    text-align: center;
+  }
+}

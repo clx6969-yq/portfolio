@@ -1,0 +1,41 @@
+/* React Bits CardSwap 组件自带的样式,基本保持原样——
+   容器默认贴在"父级容器"的右下角、带一点透视 3D 倾斜。
+   用的地方(CharacterBuild.css 里)会给一个固定宽高、
+   position:relative 的外层盒子把它包住,效果就是卡片
+   一张一张从这个盒子的右下角堆叠着轮播。 */
+.card-swap-container {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: translate(5%, 20%);
+  transform-origin: bottom right;
+
+  perspective: 900px;
+  overflow: visible;
+}
+
+.card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 12px;
+  border: 1px solid #fff;
+  background: #000;
+
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (max-width: 768px) {
+  .card-swap-container {
+    transform: scale(0.75) translate(25%, 25%);
+  }
+}
+
+@media (max-width: 480px) {
+  .card-swap-container {
+    transform: scale(0.55) translate(25%, 25%);
+  }
+}

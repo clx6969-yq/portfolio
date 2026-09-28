@@ -1,0 +1,651 @@
+.character-tag {
+  margin-top: 18px;
+  margin-bottom: 44px;
+}
+
+/* ---- 一整行横向卡片 + 左右滑动箭头 ---- */
+.character-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.character-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  overflow-x: auto;
+  /* 改成 mandatory:每次滑动都干脆利落地停在整张卡片上,
+     不会停在两张卡片中间,滑起来才利索。 */
+  scroll-snap-type: x mandatory;
+  /* 上下多留一点空间,不然卡片被点击/选中时的轻微放大效果
+     会被这个容器的滚动裁切边缘"切掉一半"。 */
+  padding: 14px 4px 18px;
+  margin: -14px -4px -18px;
+  /* 隐藏滚动条,视觉上完全靠下面那对箭头按钮来滑动 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.character-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* 卡片本身现在是一个 <button>,这里先把默认按钮样式清掉 */
+.character-card {
+  all: unset;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  flex: 0 0 200px;
+  width: 200px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: var(--radius-s);
+}
+
+.character-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* 顶部胶囊:现在写的是角色名字(不再是编号),点整张卡都能打开详情页 */
+.character-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 60, 32, 0.16);
+  backdrop-filter: blur(2px);
+  color: var(--white);
+  box-shadow: 0 0 22px -8px rgba(255, 60, 32, 0.9);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.character-card-topname {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.character-card-topbar svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.character-card:hover .character-card-topbar,
+.character-card:focus-visible .character-card-topbar {
+  background: var(--accent);
+  box-shadow: 0 0 30px -6px rgba(255, 60, 32, 1);
+  transform: translateY(-1px);
+}
+
+/* 封面立绘,四角带一圈发光取景框 */
+.character-card-cover {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background-color: var(--bg-elevated);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--glass-border);
+}
+
+.frame-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 0 6px rgba(255, 60, 32, 0.85)) drop-shadow(0 0 14px rgba(255, 60, 32, 0.4));
+}
+
+.frame-corner.tl { top: 8px; left: 8px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); border-radius: 4px 0 0 0; }
+.frame-corner.tr { top: 8px; right: 8px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); border-radius: 0 4px 0 0; }
+.frame-corner.bl { bottom: 8px; left: 8px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); border-radius: 0 0 0 4px; }
+.frame-corner.br { bottom: 8px; right: 8px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); border-radius: 0 0 4px 0; }
+
+/* 底部信息条:编号 + 中文名,字号比顶部小,不抢主要视觉 */
+.character-card-bottombar {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: var(--radius-s);
+  border: 1px solid rgba(47, 131, 216, 0.5);
+  background: rgba(255, 60, 32, 0.06);
+  box-shadow: 0 0 16px -10px rgba(255, 60, 32, 0.7);
+}
+
+.character-card-bottombar .mono-label {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.character-card-name-cn {
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* 左右滑动箭头,放在整行卡片下面居中 */
+.character-row-nav {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.character-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 60, 32, 0.1);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.character-nav-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.character-nav-btn.is-right svg {
+  transform: scaleX(-1);
+}
+
+.character-nav-btn:hover,
+.character-nav-btn:focus-visible {
+  background: var(--accent);
+  box-shadow: 0 0 24px -6px rgba(255, 60, 32, 0.9);
+  transform: translateY(-1px);
+}
+
+.character-footer {
+  display: flex;
+  gap: 18px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--glass-border);
+  opacity: 0.55;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------
+   详情页(点卡片弹出的独立页面,不再是原地展开)
+   左边小封面缩略图 + 中间大图 + 右边三张可点的插卡,
+   三张插卡和中间大图都放在白底卡片上,跟站点整体深色背景形成对比,
+   照片本身背景偏浅灰/白,贴在白卡上不会显得突兀。
+   ------------------------------------------------------------ */
+.character-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 22, 34, 0.86);
+  backdrop-filter: blur(6px);
+}
+
+.character-modal {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 32px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--accent);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 60px -16px rgba(255, 60, 32, 0.55), 0 30px 70px -20px rgba(0, 0, 0, 0.8);
+}
+
+.character-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 60, 32, 0.12);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 3;
+}
+
+.character-modal-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.character-modal-close:hover,
+.character-modal-close:focus-visible {
+  background: var(--accent);
+  transform: rotate(90deg);
+}
+
+.character-modal-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+/* 左边一整列:上面是封面缩略图身份卡,下面(如果这个角色有转盘素材)
+   多一张可以点的视频卡,点了它中间大图就切成转盘视频。 */
+.character-modal-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 150px;
+  width: 150px;
+}
+
+/* 左边:小封面缩略图,当作这份档案的"身份卡"——现在也是一颗可以点的
+   按钮,点了中间大图就切换显示这张形象照,选中时跟其它卡片一样发光。 */
+.character-modal-thumb {
+  all: unset;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  border: 1px solid var(--accent);
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 24px -10px rgba(255, 60, 32, 0.7);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.character-modal-thumb:hover {
+  transform: translateY(-2px);
+}
+
+.character-modal-thumb.is-active {
+  box-shadow: 0 0 0 2px var(--accent), 0 14px 26px -12px rgba(255, 60, 32, 0.9);
+}
+
+.character-modal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.character-modal-thumb-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  background: linear-gradient(to top, rgba(10, 22, 34, 0.88), rgba(10, 22, 34, 0));
+  color: var(--white);
+}
+
+.character-modal-thumb-label .mono-label {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.character-modal-thumb-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.character-modal-thumb-label .character-card-name-cn {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* 左下角:转盘视频卡,长得跟上面的身份卡差不多高,但海报图上叠一个
+   "360°"角标,提示这张是可以转动查看的视频,不是普通照片。 */
+.character-modal-video-thumb {
+  all: unset;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  border: 1px solid rgba(47, 131, 216, 0.5);
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 18px -12px rgba(255, 60, 32, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.character-modal-video-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0.9;
+}
+
+.character-modal-video-thumb-badge,
+.character-video-thumb-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 60, 32, 0.92);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 12px -4px rgba(255, 60, 32, 0.9);
+}
+
+.character-video-thumb-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.character-video-thumb-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 8px;
+  font-size: 8px;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: var(--white);
+  background: linear-gradient(to top, rgba(10, 22, 34, 0.82), rgba(10, 22, 34, 0));
+}
+
+.character-modal-video-thumb:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.character-modal-video-thumb.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 14px 26px -12px rgba(255, 60, 32, 0.9);
+}
+
+/* 中间大图这一整列:上面是照片/视频显示框,下面(视频模式时)多一条
+   拖动滑轨,滑轨永远紧跟在大图下方,不会跑到右边插卡那一列去。 */
+.character-modal-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 320px;
+  min-width: 220px;
+  max-width: 460px;
+}
+
+/* 中间:当前选中的三视图大图(或转盘视频),放在白底卡片上,
+   底部标注正面/侧面/背面,或者视频模式下提示"拖动旋转"。 */
+.character-modal-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  border: 1px solid rgba(47, 131, 216, 0.6);
+  background: #fff;
+  box-shadow: 0 0 34px -10px rgba(255, 60, 32, 0.6), 0 20px 46px -18px rgba(0, 0, 0, 0.6);
+}
+
+.character-modal-main img,
+.character-modal-main video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  animation: character-main-fade 0.25s ease;
+}
+
+@keyframes character-main-fade {
+  from { opacity: 0.3; transform: scale(1.015); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 大图下面的拖动滑轨:左右拖动手柄,视频就跳到对应的那一帧,
+   松手也不会自己播放——靠这个"手动擦洗"做出转动 3D 模型的感觉。 */
+.character-scrub-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.character-scrub-rail {
+  position: relative;
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.character-scrub-rail:active {
+  cursor: grabbing;
+}
+
+.character-scrub-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(47, 131, 216, 0.18);
+  overflow: hidden;
+}
+
+.character-scrub-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.character-scrub-handle {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid var(--white);
+  box-shadow: 0 0 14px -3px rgba(255, 60, 32, 0.9);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.character-scrub-hint {
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+  opacity: 0.75;
+  text-align: center;
+}
+
+/* 右边:三张可以点的插卡(正面/侧面/背面),点哪张中间大图就切成哪张 */
+.character-modal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 110px;
+  width: 110px;
+}
+
+.character-modal-stack-card {
+  all: unset;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.character-modal-stack-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.character-modal-stack-card span.mono-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 6px;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--white);
+  background: rgba(10, 22, 34, 0.65);
+}
+
+.character-modal-stack-card:hover {
+  transform: translateX(-3px) scale(1.03);
+}
+
+/* 选中的那一张:轻微放大 + 往左抬一点 + 发光描边,一眼看出选的是哪张 */
+.character-modal-stack-card.is-active {
+  border-color: var(--accent);
+  transform: translateX(-6px) scale(1.07);
+  box-shadow: 0 0 0 2px var(--accent), 0 14px 26px -12px rgba(255, 60, 32, 0.9);
+  z-index: 1;
+}
+
+.character-modal-desc {
+  margin-top: 22px;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+/* 通用的小标签(白底图片上叠一个深色小胶囊,用来写"正面/FRONT"这种标注) */
+.character-view-tag {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(10, 22, 34, 0.72);
+  color: var(--white);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(4px);
+}
+
+/* 手机宽度下,详情页改成"从上到下"一整列:大图在最上面最显眼,
+   下面依次是"身份卡+转盘视频"一排、"正面/侧面/背面"一排,
+   每一排里的卡片都用 flex:1 平分整行宽度,不会再出现某一排
+   只占一小块、右边空出一大块的情况。用 order 控制顺序,
+   跟 HTML 里原本的书写顺序(左栏在前)无关。 */
+@media (max-width: 720px) {
+  .character-card {
+    flex-basis: 160px;
+    width: 160px;
+  }
+
+  .character-modal {
+    padding: 22px 18px;
+  }
+
+  .character-modal-inner {
+    gap: 12px;
+  }
+
+  /* 大图排最上面 */
+  .character-modal-main-col {
+    order: 1;
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* 身份卡 + 转盘视频卡,并排一行,各占一半 */
+  .character-modal-left {
+    order: 2;
+    flex-direction: row;
+    flex: 1 1 100%;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .character-modal-thumb,
+  .character-modal-video-thumb {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  /* 正面/侧面/背面,并排一行,各占三分之一 */
+  .character-modal-stack {
+    order: 3;
+    flex-direction: row;
+    flex: 1 1 100%;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .character-modal-stack-card {
+    flex: 1 1 0;
+  }
+
+  .character-modal-stack-card:hover {
+    transform: translateY(-4px) scale(1.03);
+  }
+
+  .character-modal-stack-card.is-active {
+    transform: translateY(-6px) scale(1.07);
+  }
+}

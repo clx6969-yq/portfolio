@@ -1,0 +1,692 @@
+.aigc-section {
+  overflow: hidden;
+}
+
+/* 标题栏:原来靠 flex 把右侧 meta 推到行尾,那段已经删掉,退回普通块级。
+   顺带解决标题改中文后中间那一大段横向留白。 */
+.aigc-header {
+  margin-bottom: 48px;
+}
+
+/* section-title 的 clamp(40px, 5vw, 76px) 是按拉丁字宽调的,
+   四个汉字放进去只有三百来像素,撑不住一个板块标题。
+   这里单独给中文标题放大一档,并松开字距(汉字不需要拉丁那样的负字距)。 */
+.aigc-title {
+  font-size: clamp(44px, 6vw, 92px);
+  letter-spacing: 0.01em;
+}
+
+/* ---- 整体两栏:左边CD架,右边播放器 ---- */
+.aigc-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .aigc-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- 左边:CD 唱片架 ---- */
+/* align-items: start —— 海报比例各不相同(《己》竖版、《活路》方形),
+   同一行的卡片不强行拉齐高度,各自按内容收,免得矮的卡片里
+   塌出一块空白。 */
+.aigc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 22px;
+}
+
+/* 只有一部作品时:原来固定 3 列会空掉两格,而且左栏还占着 1.6fr,
+   右栏播放器被挤窄。这里用 :has() 让布局自己适配 ——
+   左栏收成固定宽度,CD 架变成一列,把空间让给播放器。
+   以后往 videos 里追加作品,条数一变这几条规则就自动失效,回到 3 列。 */
+.aigc-layout:has(.aigc-grid > :only-child) {
+  grid-template-columns: minmax(0, 360px) 1fr;
+}
+
+.aigc-grid:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* 正好两张作品时:两张竖着排成一列,海报按各自原比例完整露出;
+   剩下的宽度全部让给右边的播放器(屏幕比原来大出一倍多)。
+   左栏宽度不是随手拍的:竖排两张海报的总高 ≈ 2.34×左栏宽 + 卡片文字区,
+   播放器总高 ≈ 剩余宽度/1.6 + 控件区。1500px 视口下取 ~315px 时
+   两边几乎等高(差 <30px),哪一侧都不会留出大片空白。
+   :nth-child(2):last-child == 恰好两个子元素,一张或三张时都不命中。 */
+.aigc-layout:has(.aigc-grid > :nth-child(2):last-child) {
+  grid-template-columns: clamp(280px, 21vw, 340px) 1fr;
+}
+
+.aigc-grid:has(> :nth-child(2):last-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* 上面 :has() 的选择器权重比这里的媒体查询高,窄屏塌成单列这件事
+   必须显式再写一遍,否则会被它们盖掉(踩过)。 */
+@media (max-width: 1100px) {
+  .aigc-layout:has(.aigc-grid > :only-child),
+  .aigc-layout:has(.aigc-grid > :nth-child(2):last-child) {
+    grid-template-columns: 1fr;
+  }
+  .aigc-grid:has(> :only-child) {
+    grid-template-columns: minmax(0, 360px);
+  }
+  /* 窄屏单列布局下,竖版海报再独占整行会被拉得巨大,两张回到并排。
+     两张海报比例不同(竖版/方形),并排高度不齐,靠 .aigc-grid 上的
+     align-items: start 各自按自己高度收,不硬撑成等高。 */
+  .aigc-grid:has(> :nth-child(2):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .aigc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .aigc-grid:has(> :only-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- 播放器"放大居中"模式下,CD架变成竖排一列 + 整体虚焦 ----
+   自己是选中项、或者鼠标移上去的那一张,会恢复清晰、可以照常点击
+   切换到别的视频;其余的保持模糊变暗,把视觉重心让给中间放大的
+   播放器。 */
+.aigc-grid.is-unfocused {
+  grid-template-columns: 1fr;
+  max-width: 320px;
+  gap: 16px;
+  margin: 0 auto;
+  transition: grid-template-columns 0.5s ease, max-width 0.5s ease, gap 0.5s ease;
+}
+
+.aigc-grid.is-unfocused .aigc-disc {
+  filter: blur(3px) brightness(0.7);
+  opacity: 0.55;
+  transform: scale(0.96);
+  transition: filter 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+}
+
+.aigc-grid.is-unfocused .aigc-disc:hover,
+.aigc-grid.is-unfocused .aigc-disc:focus-visible,
+.aigc-grid.is-unfocused .aigc-disc.is-selected {
+  filter: none;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.aigc-disc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--glass-border);
+  background: var(--bg-elevated);
+  text-align: left;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+/* 鼠标移上去:整张卡片抬起来 + 往右微微转个角度(见 JSX 里的
+   whileHover),这里再配一圈跟着变大的阴影,让它看起来像悬浮在
+   桌面上方一样 */
+.aigc-disc:hover,
+.aigc-disc:focus-visible {
+  border-color: rgba(47, 131, 216, 0.5);
+  box-shadow: 0 30px 46px -20px rgba(47, 131, 216, 0.5), 0 16px 30px -14px rgba(0, 0, 0, 0.6);
+}
+
+.aigc-disc.is-selected {
+  border-color: var(--accent);
+  background: linear-gradient(160deg, rgba(47, 131, 216, 0.14), var(--bg-elevated) 60%);
+  box-shadow: 0 0 0 1px var(--accent), 0 12px 40px -10px rgba(47, 131, 216, 0.55);
+}
+
+/* 海报框:宽高比不再写死在 CSS 里。原来固定 1306/1204(近方形),
+   《己》的竖版海报(763×1080)塞进去左右各裁 ~17%,海报看不出原样。
+   现在比例由数据里每部作品的 caseAspect 提供(JSX 写成内联
+   aspect-ratio),这里只留 3/4 当兜底。框子有确定比例,图片懒加载
+   时也不会跳版。 */
+.aigc-disc-case {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+}
+
+.aigc-disc-case-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aigc-disc-spin {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: 50% 50%;
+}
+
+.aigc-disc-id {
+  color: var(--accent);
+  letter-spacing: 0.16em;
+}
+
+.aigc-disc-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.aigc-disc-title {
+  min-width: 0;
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aigc-disc-duration {
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.aigc-disc-tags {
+  min-width: 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+/* ---- 右边:播放器面板 ---- */
+.aigc-player {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  position: sticky;
+  top: 110px;
+}
+
+/* ---- 放大居中模式:播放器跳出原来的位置,固定在整个网页正中间、
+   明显放大;用 inset:0 + margin:auto 让它自己居中。
+   入场用下面这段纯 CSS 动画,不再依赖 framer-motion 的 layout 属性。 ---- */
+.aigc-player.is-expanded {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  /* 之前放大后还是太小,视频画面几乎没什么变化——现在整体宽度
+     差不多翻倍,让视频画面(跟播放器宽度等比)明显变大。 */
+  width: min(1440px, 96vw);
+  max-height: 94vh;
+  padding: 30px;
+  gap: 20px;
+  overflow-y: auto;
+  z-index: 200;
+  box-shadow: 0 50px 140px -24px rgba(27, 51, 72, 0.35), 0 0 0 1px rgba(27, 51, 72, 0.1);
+  /* 从下方轻微放大浮现,替代原来"从原位滑到中央"的 morph。 */
+  animation: aigc-player-expand 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes aigc-player-expand {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.aigc-expand-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 44, 60, 0.38);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 150;
+}
+
+.aigc-player-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aigc-player-tags {
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aigc-player-screen-wrap {
+  position: relative;
+}
+
+.aigc-player-screen {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-soft);
+  padding: 0;
+}
+
+/* 播放画面右上角的"放大"按钮,平时半透明的一个深色圆角小方块,
+   鼠标移上去才完全显现,风格跟播放器其它图标按钮统一(细线条)。 */
+.aigc-expand-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(27, 51, 72, 0.15);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  opacity: 0.75;
+  transition: opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.aigc-expand-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.aigc-expand-btn:hover,
+.aigc-expand-btn:focus-visible {
+  opacity: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.aigc-player-screen img,
+.aigc-player-screen video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aigc-player-playhint {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(27, 51, 72, 0.14);
+}
+
+/* 没起播之前盖在画面上的海报。单独一层绝对定位的图片,而不是给
+   <video> 加 poster 属性 —— poster 只在"从没播过"的时候有效,暂停
+   或换片之后就压不住已经解出来的画面了。等到真的出第一帧
+   (onPlaying)再加 .is-hidden 淡出。 */
+.aigc-player-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+.aigc-player-poster.is-hidden {
+  opacity: 0;
+}
+
+/* 播放按钮做成一颗半透明玻璃圆钮,压在封面上,一眼就知道"点这里开始" */
+.aigc-play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 14px 32px -14px rgba(6, 16, 26, 0.65);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.aigc-player-screen:hover .aigc-play-btn,
+.aigc-player-screen:focus-visible .aigc-play-btn {
+  transform: scale(1.06);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* 点了播放、正片还没出第一帧时的等待态:海报上转一圈。正片是
+   一两百 MB 的片源,不给点反馈的话展示栏会看着像卡死。 */
+.aigc-player-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(27, 51, 72, 0.14);
+}
+
+.aigc-loading-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  border-top-color: var(--white);
+  animation: aigc-spin 0.9s linear infinite;
+}
+
+@keyframes aigc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aigc-loading-ring {
+    animation-duration: 2.4s;
+  }
+}
+
+.aigc-play-triangle {
+  width: 0;
+  height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 20px solid var(--white);
+  margin-left: 4px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+/* ---- 播放器"控制台":进度条 + 播放按钮 + 音量,做成一整块独立面板 ---- */
+.aigc-player-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 18px 18px;
+  border-radius: var(--radius-m);
+  background: var(--bg-soft);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 30px -18px rgba(27, 51, 72, 0.25);
+}
+
+.aigc-scrub-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aigc-scrub-time {
+  flex-shrink: 0;
+  width: 34px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.aigc-scrub-time-remaining {
+  width: auto;
+  text-align: right;
+}
+
+/* 原生 range 输入,自己画滑轨 + 发光小圆点,兼容 webkit / firefox */
+.aigc-scrub-input,
+.aigc-volume-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--pct, 0%),
+    var(--glass-border) var(--pct, 0%),
+    var(--glass-border) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.aigc-scrub-input::-webkit-slider-thumb,
+.aigc-volume-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px 1px rgba(47, 131, 216, 0.7);
+  border: 2px solid var(--white);
+  transition: transform 0.15s ease;
+}
+
+.aigc-scrub-input:hover::-webkit-slider-thumb,
+.aigc-volume-input:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.aigc-scrub-input::-moz-range-thumb,
+.aigc-volume-input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--white);
+  box-shadow: 0 0 8px 1px rgba(47, 131, 216, 0.7);
+}
+
+.aigc-scrub-input::-moz-range-track,
+.aigc-volume-input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.aigc-player-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.aigc-player-buttons button,
+.aigc-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 6px;
+  color: var(--text-dim);
+}
+
+.aigc-player-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent) !important;
+  color: var(--white) !important;
+  box-shadow: 0 8px 24px -8px rgba(47, 131, 216, 0.65);
+}
+
+/* 播放器变宽之后(1500px 视口下屏幕有 1015px 宽),音量条跟着被拉成
+   近千像素,和上面同样满宽的进度条长得几乎一样,容易看混。
+   给个上限并居中,和上面的播放按钮同轴。 */
+.aigc-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.aigc-volume-row .aigc-volume-input {
+  flex: 1;
+}
+
+.aigc-icon-play,
+.aigc-icon-pause,
+.aigc-icon-prev,
+.aigc-icon-next {
+  display: block;
+  position: relative;
+  width: 12px;
+  height: 12px;
+}
+
+.aigc-icon-play {
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid currentColor;
+  margin-left: 2px;
+}
+
+.aigc-icon-pause::before,
+.aigc-icon-pause::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 13px;
+  background: currentColor;
+}
+.aigc-icon-pause::before { left: 2px; }
+.aigc-icon-pause::after { right: 2px; }
+
+.aigc-icon-prev,
+.aigc-icon-next {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+.aigc-icon-prev {
+  border-right: 9px solid currentColor;
+}
+.aigc-icon-next {
+  border-left: 9px solid currentColor;
+}
+
+/* 音量按钮上的小喇叭图标(纯 CSS 画的,不用图片) */
+.aigc-icon-speaker {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  clip-path: polygon(0% 32%, 35% 32%, 62% 6%, 62% 94%, 35% 68%, 0% 68%);
+}
+
+.aigc-icon-speaker--loud::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: 2px;
+  border: 1.6px solid currentColor;
+  border-radius: 50%;
+  clip-path: inset(0 0 0 50%);
+  transform: translateY(-50%);
+  opacity: 0.85;
+}
+
+.aigc-player-volume {
+  flex-shrink: 0;
+  letter-spacing: 0.1em;
+}
+
+.aigc-player-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+
+.aigc-player-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.aigc-player-subtags {
+  margin-top: 4px;
+}
+
+.aigc-player-cta {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .aigc-player {
+    position: static;
+  }
+}
+
+/* ---- 底部一行小字 ---- */
+.aigc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+  opacity: 0.55;
+}
+
+@media (max-width: 700px) {
+  .aigc-footer {
+    justify-content: flex-start;
+  }
+  .aigc-footer span:nth-child(3) {
+    display: none;
+  }
+}

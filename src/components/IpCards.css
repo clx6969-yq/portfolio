@@ -1,0 +1,169 @@
+/* IP 联名 —— 三张完整卡片
+   ------------------------------------------------------------
+   桌面三列等宽,窄屏一列。封面框严格 3:4、素材本身也是 3:4,所以
+   object-fit: cover 一点也不会裁;文字全部落在封面下方的白底上,
+   不压图、不用竖排、不用半透明块,保证读得清。 */
+
+.ip-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.ip-card {
+  min-width: 0;
+}
+
+.ip-card-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-s, 16px);
+  border: 1px solid var(--glass-border, rgba(27, 51, 72, 0.12));
+  background: var(--bg-elevated, #fff);
+  box-shadow: 0 16px 36px -26px rgba(27, 51, 72, 0.5);
+  cursor: pointer;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.ip-card-btn:hover,
+.ip-card-btn:focus-visible {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 28px 54px -26px rgba(47, 131, 216, 0.55);
+}
+
+.ip-card-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---- 封面 ---- */
+.ip-card-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bg-soft, #e6f1fa);
+}
+
+.ip-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ip-card-btn:hover .ip-card-media img,
+.ip-card-btn:focus-visible .ip-card-media img {
+  transform: scale(1.04);
+}
+
+/* 编号:圆角胶囊,蓝底白字,压在封面左上角 */
+.ip-card-num {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(47, 131, 216, 0.94);
+  color: #fff;
+  font-family: var(--font-display, inherit);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  box-shadow: 0 6px 16px -8px rgba(10, 22, 34, 0.7);
+}
+
+/* ---- 文字区(白底,横排) ---- */
+.ip-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 18px 20px 20px;
+}
+
+.ip-card-kicker {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ip-card-title {
+  font-family: var(--font-display, inherit);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.ip-card-sub {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+.ip-card-tag {
+  margin-top: 3px;
+  padding-top: 11px;
+  border-top: 1px solid var(--glass-border, rgba(27, 51, 72, 0.1));
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+/* ---- 平板:两列(一列会让封面大到一屏放不下一张) ---- */
+@media (max-width: 900px) {
+  .ip-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .ip-card-title {
+    font-size: 17px;
+  }
+}
+
+/* ---- 手机:一列 ---- */
+@media (max-width: 620px) {
+  .ip-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .ip-card-text {
+    padding: 15px 16px 17px;
+  }
+
+  .ip-card-title {
+    font-size: 16px;
+  }
+
+  .ip-card-sub,
+  .ip-card-tag {
+    font-size: 12px;
+  }
+}

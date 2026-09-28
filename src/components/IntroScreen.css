@@ -1,0 +1,179 @@
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  overflow: hidden;
+  /* 底部说明文字现在走深色(见 .intro-caption),所以兜底底色也得跟着
+     走浅色。视频还没解码出来、或者换素材时漏了文件的那一瞬间,露出的是
+     浅底,那行深色字才不会糊在背景里。
+     这条原来写的是 #0d1b26 深墨蓝 —— 那是配"深色开机视频 + 浅色文字"
+     的,视频换成亮底之后就不再成立了。 */
+  background: var(--bg);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.intro-screen.is-exiting {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+.intro-bg-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 关机/进入网站那一下的白闪,像老电视关机时屏幕收缩前的一闪 */
+.intro-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: var(--white);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-screen.is-exiting .intro-flash {
+  animation: intro-flash-pulse 0.5s ease-out forwards;
+}
+
+@keyframes intro-flash-pulse {
+  0% { opacity: 0; }
+  18% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+/* 叠一层很淡的扫描线,让视频看起来更有"屏幕感" */
+.intro-ambient-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* 四周压一层,让中间的 START 按钮和底部说明文字更突出、更好读。
+   注意底部那条是【提亮】不是压暗:开屏视频已经换成亮底的了,再压暗
+   只会把那行深色小字吃掉;铺一层浅色雾之后,字才有干净的底。 */
+.intro-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, transparent 20%, transparent 78%, rgba(255, 255, 255, 0.72) 100%);
+  pointer-events: none;
+}
+
+/* 3D 立体按键 (Uiverse "loud-hound-39" 简化版):
+   黑边框 + 一层 inset 高光(白色)+ 一层实色投影当厚度,
+   边距 / 阴影偏移都收紧,只用一组阴影就足够立体,不再臃肿。
+   色系走浅米白,和开屏暗视频背景形成反差但不刺眼。 */
+.intro-start-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  border: 4px solid #1b3348;
+  background-color: #eef6fc;
+  color: #1b3348;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(20px, 2.4vw, 30px);
+  letter-spacing: 0.05em;
+  padding: clamp(10px, 1.5vw, 14px) clamp(28px, 4vw, 42px);
+  white-space: nowrap;
+  box-shadow:
+    inset 5px 5px 0 0 #ffffff,
+    5px 5px 0 0 rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out;
+}
+
+.intro-start-btn:hover {
+  /* 整颗按键向左上抬 2px,投影同步偏移,看上去被手指掀起来一点 */
+  transform: translate(calc(-50% - 2px), calc(-50% - 2px));
+  box-shadow:
+    inset 5px 5px 0 0 #ffffff,
+    6px 6px 0 0 rgba(0, 0, 0, 0.22);
+}
+
+.intro-start-btn:active {
+  /* 按下去:向右下压 2px,投影收回去 2px,反馈"被按下" */
+  transform: translate(calc(-50% + 2px), calc(-50% + 2px));
+  box-shadow:
+    inset 5px 5px 0 0 #ffffff,
+    3px 3px 0 0 rgba(0, 0, 0, 0.22);
+}
+
+/* hover 时一道白色斜光从左下扫到右上,模拟玻璃高光 */
+.intro-start-glass {
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 30%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  transform: skewX(-25deg);
+  pointer-events: none;
+}
+
+.intro-start-btn:hover .intro-start-glass {
+  animation: intro-start-glass-sweep 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes intro-start-glass-sweep {
+  0% { left: -40%; }
+  100% { left: 110%; }
+}
+
+/* 这行字同时挂着全站的 .mono-label(它里面也定义了 color: var(--text-dim)),
+   两个类优先级相同,谁生效只看打包后的源码顺序 —— 实测是 .mono-label 赢,
+   所以渲染出来是 #5b7891,而不是这里想写的浅色。多带一层 .intro-screen
+   提级,跟 Hero.css 里 .hero-title-block .hero-eyebrow 是同一种处理。
+
+   颜色必须走【深色】:开屏视频现在是亮底的 —— 实测底部那一条在 10 秒里
+   亮度一直是 144~153,没有暗场。浅字压上去只有 1.5:1 对比度,纯白也只有
+   3.07:1,都达不到 WCAG AA 小字要求的 4.5:1,所以"改成白色"其实救不回来。
+   换成 --text 深墨蓝后是 7.9:1。 */
+.intro-screen .intro-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  transform: translateX(-50%);
+  z-index: 3;
+  color: var(--text);
+  /* 浅色外发光:万一视频里有较暗的内容扫过这一带,字也不会糊掉 */
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.85),
+    0 1px 2px rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .intro-start-btn {
+    top: 50%;
+    padding: 10px clamp(22px, 8vw, 34px);
+  }
+  /* 同样要多带一层,否则字号会被 .mono-label 的 12px 盖掉 */
+  .intro-screen .intro-caption {
+    font-size: 10px;
+  }
+}

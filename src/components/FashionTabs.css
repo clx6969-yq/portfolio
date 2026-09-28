@@ -1,0 +1,33 @@
+.fashion-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 48px 0 40px;
+}
+
+.fashion-tab {
+  padding: 12px 22px;
+  font-size: 13px;
+}
+
+.fashion-tab-en {
+  color: var(--text-faint);
+}
+
+@media (max-width: 900px) {
+  .fashion-tabs {
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .fashion-tabs {
+    gap: 8px;
+    margin: 34px 0 26px;
+  }
+
+  .fashion-tab {
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+}

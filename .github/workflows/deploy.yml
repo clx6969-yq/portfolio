@@ -1,0 +1,76 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 推送到 main 自动部署 —— 任何推到 main 的提交都会触发
+  # 构建 → 校验 → 部署,适合 demo / 持续交付阶段。
+  push:
+    branches: [ main ]
+  # GitHub Actions 页面里手动点 Run workflow 也会跑,
+  # 留给"想跳过自动部署临时再手动触发"的场景。
+  workflow_dispatch:
+
+# 部署到 GitHub Pages 必须的权限:读仓库、上传 pages 工件、
+# 拿到 pages 的 OIDC token。actions/deploy-pages@github-pages
+# 官方要求的最小权限集就是这三条。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一个 group 内只能有一个运行实例;之前还在跑的部署会被取消,
+# 避免有人连续 push 时新旧构建互相覆盖、产物错乱。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 模板 package.json 里要求 Node >= 20.19。
+          node-version: "20"
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      # 跑全量校验:test + build + privacy:check。
+      # verify 通过才进 deploy 阶段 —— 任何一项失败这次提交
+      # 就不会上线,而不是 build 过了但带病部署。
+      - name: 校验(测试 / 构建 / 隐私扫描)
+        run: npm run verify
+
+      # 这一步会自动设 BASE_URL 环境变量到仓库对应的子路径:
+      #   - 根用户名仓库 "<用户名>.github.io"  →  BASE_URL = "/"
+      #   - 普通仓库 "<用户名>.github.io/<仓库>"  →  BASE_URL = "/<仓库>/"
+      # vite.config.js 从 process.env.BASE_URL 读,所以一份配置
+      # 在两种部署形式下都直接跑通,不用再手动改 base。
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      # 把 dist/ 整个目录打包上传给下一个 job 用。
+      # path 不对的话 deploy-pages 会报 "no index.html found",
+      # 这里和 vite 默认输出目录保持一致。
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # github-pages 是 GitHub 自动建好的 environment,
+    # url 会显示在 Actions 页面顶部,告诉用户"这次部署到哪儿"。
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

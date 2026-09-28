@@ -1,0 +1,431 @@
+/* ---- 整个模块的浅色氛围背景,叠加"工作室桌面"插画做背景图 ---- */
+.directory-section {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(47, 131, 216, 0.1), transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(255, 255, 255, 0.5), transparent 50%),
+    linear-gradient(180deg, rgba(242, 248, 253, 0.92), rgba(242, 248, 253, 0.96) 55%, #f2f8fd 85%),
+    var(--directory-image);
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center 30%;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* 顶部的"淡入"渐变:从跟上一个模块结尾一样的底色(--bg),
+   往下慢慢透明,露出这个模块自己的背景图——这样两个模块
+   交界的地方是"慢慢变过去",不是硬邦邦一条线。 */
+.directory-top-fade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 260px;
+  z-index: 0;
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(242, 248, 253, 0.6) 40%, rgba(242, 248, 253, 0) 100%);
+  pointer-events: none;
+}
+
+.directory-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(27, 51, 72, 0.03) 0px,
+      rgba(27, 51, 72, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+}
+
+.directory-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- 顶部:大标题 + 右上角信息角标 ---- */
+.directory-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.directory-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.directory-mega-title {
+  font-family: var(--font-hero);
+  font-weight: 900;
+  font-size: clamp(48px, 7vw, 112px);
+  /* 中文不能像拉丁字母那样把行高压到 0.82——上下笔画会顶在一起,
+     这里放宽到 1.05,字面更透气。 */
+  line-height: 1.05;
+  color: var(--text);
+  opacity: 0.92;
+}
+
+.directory-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  padding-bottom: 10px;
+}
+
+.directory-subtitle-sub {
+  color: var(--text-faint);
+}
+
+/* 红框位置:加粗的中文"系统目录"——用中文正文字体最粗字重(900),
+   字距拉开一点显得更有设计感,下面配一条红色小短线做点缀,
+   呼应网站里到处都有的红色强调色。 */
+.directory-subtitle-cn {
+  position: relative;
+  font-family: var(--font-cjk);
+  font-weight: 900;
+  font-size: clamp(24px, 2.8vw, 38px);
+  line-height: 1;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  padding-bottom: 10px;
+  margin-bottom: 2px;
+}
+
+.directory-subtitle-cn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 42px;
+  height: 4px;
+  background: var(--accent);
+}
+
+.directory-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--text-dim);
+  letter-spacing: 0.16em;
+}
+
+.directory-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.directory-dot.is-on {
+  background: var(--accent);
+}
+
+/* 右上角那组信息角标(好内容/连接更多可能 等)已整块移除,
+   对应的 .directory-info-* / .directory-scribble / .directory-globe
+   样式一并删掉,不留死代码。 */
+
+/* ---- 中间:5 张票根卡片,像"一手扑克牌"一样共用一个底部支点展开成扇形 ----
+   .ticket-card-slot 负责"钉在同一个支点上"(纯 CSS、不参与动画);
+   .ticket-card 自己是 motion.a,水平位置/角度/缩放全部由 React 状态
+   (拖动偏移 + 当前选中哪张)算出来,交给 framer-motion 做弹簧动画,
+   所以是"滑过去"而不是瞬间跳过去。 */
+.directory-fan {
+  position: relative;
+  /* 卡片是贴着这个容器的底边(见下面 .ticket-card-slot 的 bottom)
+     摆放的,容器本身留得太高的话,卡片上面就会空出一大截什么都
+     没有的背景。整组牌放大到 400x540 之后,容器高度跟着提到 640
+     (540 + 支点留的 12% ≈ 617,再留一点余量);容器不裁切内容,所以
+     斜着的牌顶出来一点点也不会被切。上边距 60 是给标题区留一道气口。 */
+  height: 640px;
+  margin-top: 60px;
+  padding-bottom: 8px;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.directory-fan:active {
+  cursor: grabbing;
+}
+
+.ticket-card-slot {
+  position: absolute;
+  left: 50%;
+  /* 支点离容器底边留一点点距离就够了(不需要留三分之一那么多空
+     白)——上次改成用负的 margin 硬把下面的按钮往上拉,结果按钮
+     和卡片的可交互区域叠在了一起,导致拖动失灵;这次直接从根源
+     缩小卡片底部本来就留的这块空白,按钮自然就没那么远了,也不会
+     再跟卡片的拖拽区域重叠。 */
+  bottom: 12%;
+  transform: translateX(-50%);
+  /* slot 只是"钉支点"用的定位层,不该参与鼠标命中:4 个 slot 的盒子
+     一样大、位置完全重合(都是 left:50% + translateX(-50%)),真正被
+     挪开的只有里面的卡片。不关掉的话,鼠标压在"第 2、3 张"(它们离圆心
+     最近)身上时,最上层命中的经常是"另一张牌的 slot"——那张牌自己并不
+     在这个位置,于是 hover 不亮、点击也没反应,感觉就是"点不准/点错"。
+     关掉之后命中完全交给卡片自己;谁盖住谁仍然由 slot 上的 z-index 决定,
+     所以点重叠处落到的一定是"视觉上更靠前"的那张。 */
+  pointer-events: none;
+}
+
+/* 卡片正面就是一张封面图(item.cardImage) + 底部一行文字提示,不再用
+   代码画编号/标签那些内容;阴影/圆角/悬停发光这些"卡片外面一圈"的
+   效果还是由 CSS 来做,跟图片本身分开。
+
+   高度以前是死的 618:1200(那是照着旧的票根截图定的比例),现在
+   封面换成四张真实作品图(0.75 竖 / 1.0 方 / 0.54 长 / 1.33 横),
+   再套票根比例的话横版那张会被裁掉一半,所以高度跟着图片自己走,
+   只用 max-height 兜底:最长的抖音作品图会超出卡片高度,超出部分
+   从底部截掉(顶部"作品 33"标题和第一行数据都留着)。540 是压着
+   几张牌的高度差的:最长那张再高就会显得比被悬停的那张还大,
+   而截到 540 刚好保住两行作品数据;卡片往上的溢出量落在
+   .directory-fan 的 60px 上边距里,不会顶到上面的标题。 */
+.ticket-card {
+  position: relative;
+  transform-origin: bottom center;
+  display: block;
+  /* 牌宽跟着视口走:1440 宽时 ≈403(比上一版死钉的 400 略大,基本
+     持平),1600 时 ≈448、1920 以上到 460 封顶 —— 之前宽度是写死的,
+     大屏上整手牌只占容器的一半,左右白留一大片,牌却还是那么大。
+     窄屏有 340 的下限兜底(≤960 会改回 100% 竖排,见文件末尾)。
+     水平步进不写死在 JS 里:FeaturedOverview.jsx 量出这张卡的真实
+     宽度后按 0.75 算(相邻两张只重叠 25%),再按容器宽度兜底,
+     所以牌变大的同时不会左右出血。 */
+  width: clamp(340px, 28vw, 460px);
+  max-height: 540px;
+  pointer-events: auto; /* 见 .ticket-card-slot 里的说明:命中要落在卡片上 */
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(27, 51, 72, 0.12);
+  /* 每张牌任何时候都要看得出"浮在背景上"的阴影,不是只有
+     悬停才有:近处一层小范围、深一点的接触阴影负责"贴地感",
+     远处一层大范围、软一点的阴影负责"悬浮感",两层叠在一起
+     即使背景本身很亮,也能看出卡片跟背景是分开的两层。 */
+  box-shadow:
+    0 10px 18px -6px rgba(27, 51, 72, 0.12),
+    0 34px 58px -18px rgba(27, 51, 72, 0.18),
+    0 0 34px -6px var(--ticket-glow, rgba(255, 255, 255, 0.3));
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+/* 原来这位置有一对"票根挖孔"的装饰圆(::before / ::after):旧封面是
+   专门的票根截图,截图里本来有孔,再用 CSS 补两个深色小圆盖上去。
+   现在封面换成了真实作品图(插画/海报/作品截图),孔的说法不成立了,
+   两个深色圆压在照片上只会像两个脏点,所以整块删掉。 */
+
+.ticket-card.tone-light {
+  --ticket-glow: rgba(47, 131, 216, 0.25);
+}
+
+.ticket-card.tone-dark {
+  --ticket-glow: rgba(255, 96, 48, 0.6);
+}
+
+/* 图片按自己的比例铺满卡宽,高度不再写死(见上面 .ticket-card 的注释),
+   所以不能用 object-fit: cover —— 那样图会被裁。 */
+.ticket-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 卡片底部的文字提示:个人简介 / 影视创作 / 运营作品 / IP 策划。
+   深色渐变 + 白色字,压在插画那片白底、海报那片黑底上都读得清;
+   最下面一行放"编号 + 板块名"。pointer-events: none 保证点卡片
+   任意位置都还是点在那个 <a> 上(跳转不受影响)。 */
+.ticket-card-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 40px 20px 18px;
+  background: linear-gradient(to top, rgba(8, 20, 32, 0.86), rgba(8, 20, 32, 0));
+  color: var(--white);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.ticket-card-caption-index {
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+/* 卡片被 max-height 截短(抖音那张)时,底部提示仍然贴着卡片底边 */
+.ticket-card-caption-text {
+  font-weight: 500;
+}
+
+/* 位置/角度/缩放的弹出效果由 React + framer-motion 控制(见 .jsx),
+   这里只补一点辉光和描边,不碰 transform,避免跟弹簧动画打架。 */
+.ticket-card:hover,
+.ticket-card:focus-visible {
+  border-color: rgba(27, 51, 72, 0.2);
+  box-shadow:
+    0 12px 20px -6px rgba(27, 51, 72, 0.14),
+    0 44px 70px -18px rgba(27, 51, 72, 0.22),
+    0 0 0 1px var(--ticket-glow, rgba(47, 131, 216, 0.3)),
+    0 0 56px 6px var(--ticket-glow, rgba(47, 131, 216, 0.3));
+}
+
+/* 圆形数字按钮(1-5):固定不动的导航方式,鼠标悬停/选中时
+   用红色高亮,跟网站里其它红色强调元素统一。 */
+.directory-fan-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.directory-fan-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.directory-fan-dot:hover,
+.directory-fan-dot:focus-visible,
+.directory-fan-dot.is-active {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--white);
+  box-shadow: 0 8px 22px -6px rgba(47, 131, 216, 0.65);
+}
+
+.directory-fan-hint {
+  margin-top: 20px;
+  color: var(--text-faint);
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+/* ---- 底部页脚说明 ---- */
+.directory-bottombar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-faint);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+}
+
+.directory-bottom-left,
+.directory-bottom-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.directory-bottom-right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.directory-barcode-small {
+  width: 120px;
+  height: 16px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--text-faint) 0px,
+    var(--text-faint) 1px,
+    transparent 1px,
+    transparent 2.5px,
+    var(--text-faint) 2.5px,
+    var(--text-faint) 3px,
+    transparent 3px,
+    transparent 5px
+  );
+  opacity: 0.5;
+}
+
+.directory-bottom-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-dim);
+  flex: 1;
+  justify-content: center;
+  min-width: 220px;
+}
+
+.directory-hr {
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--glass-border) 0 4px, transparent 4px 8px);
+}
+
+@media (max-width: 1400px) {
+  .directory-fan {
+    /* 牌宽已经由 .ticket-card 上的 clamp(340px, 28vw, 460px) 接管,
+       这个断点只负责把容器高度提到 680 —— 牌整体（含被截到 540 的
+       抖音那张）要在里面稳稳摆住。之前的中间档宽度 = 340 已被
+       clamp 的下限覆盖，不再重复声明。 */
+    height: 680px;
+  }
+}
+
+/* 手机屏幕摆不下扇形,自动改回竖着排一列(跟原来一样)。 */
+@media (max-width: 960px) {
+  .directory-fan {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    cursor: default;
+    touch-action: auto;
+  }
+  .ticket-card-slot {
+    position: static;
+    transform: none;
+  }
+  .ticket-card {
+    width: 100%;
+    max-width: 420px;
+    transform: none !important;
+  }
+  /* 手机上卡片改成竖着排一列(正常文档流),不再需要往上硬拉,
+     用回正常间距就好,不然按钮会贴到卡片上。 */
+  .directory-fan-nav {
+    margin-top: 12px;
+  }
+  .directory-bottombar {
+    flex-direction: column;
+  }
+  .directory-bottom-right {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

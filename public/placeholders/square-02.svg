@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d1b26"/><stop offset="1" stop-color="#e6b94a" stop-opacity=".65"/></linearGradient></defs>
+  <rect width="1200" height="1200" fill="url(#g)"/>
+  <circle cx="936" cy="336.00000000000006" r="288" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>
+  <path d="M96 216H1104M96 983.9999999999999H1104M264 0V1200" stroke="#fff" stroke-opacity=".14"/>
+  <text x="8%" y="72%" fill="#fff" font-family="Arial,sans-serif" font-size="78" font-weight="700">SQUARE 02</text>
+  <text x="8%" y="79%" fill="#fff" fill-opacity=".6" font-family="monospace" font-size="22">REPLACE WITH YOUR WORK</text>
+</svg>

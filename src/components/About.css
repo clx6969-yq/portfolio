@@ -1,0 +1,566 @@
+.profile-grid {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+/* ---- 左侧:工卡照片(整张合成好的图) ---- */
+.profile-card-col {
+  position: sticky;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-id-card-img {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.55));
+}
+
+.profile-card-caption {
+  align-self: flex-start;
+  margin-top: 18px;
+  margin-left: 8px;
+  line-height: 1.7;
+  opacity: 0.6;
+}
+
+/* 卡片下面那段引用式简介(原来在右边,现在挪到工卡下方) */
+.profile-card-col .profile-quote-row {
+  align-self: stretch;
+  margin: 28px 0 0;
+}
+
+.profile-card-col .profile-quote-en,
+.profile-card-col .profile-quote-cn {
+  max-width: none;
+}
+
+@media (max-width: 960px) {
+  .profile-card-col {
+    position: static;
+    align-items: flex-start;
+  }
+}
+
+/* ---- 右侧上方:大标题区 ---- */
+.profile-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profile-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-top: 6px;
+}
+
+.profile-title .accent {
+  color: var(--accent);
+}
+
+.profile-title-cn {
+  font-family: var(--font-cjk);
+  font-size: 15px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-top: 8px;
+}
+
+.profile-corner-note {
+  text-align: right;
+  line-height: 1.7;
+  opacity: 0.55;
+  white-space: nowrap;
+  padding-top: 10px;
+}
+
+/* ---- 引用式简介 ---- */
+.profile-quote-row {
+  display: flex;
+  gap: 18px;
+  margin: 36px 0 40px;
+  padding-left: 4px;
+  border-left: 1px solid var(--glass-border);
+}
+
+.profile-quote-bracket {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.profile-quote-text {
+  min-width: 0;
+}
+
+.profile-quote-en {
+  font-family: var(--font-mono);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 640px;
+  margin: 0 0 14px;
+}
+
+.profile-quote-cn {
+  font-family: var(--font-cjk);
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--text);
+  max-width: 640px;
+}
+
+.file-cabinet-hint {
+  margin-bottom: 16px;
+}
+
+/* ---- 档案文件夹式工作经历 ---- */
+.exp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 鼠标划过某一条经历时,给它一圈"流动的光泽描边"+ 轻微上浮,
+   光泽是一段绕着卡片边框转圈的渐变色,常亮时是普通描边,
+   划过去才会亮起来并转动(参考 aceternity 的 hover-border-gradient 效果,
+   这里直接用纯 CSS 实现,不依赖额外组件库)。 */
+@property --exp-glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.exp-item {
+  position: relative;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-s);
+  background: var(--bg-elevated);
+  overflow: visible;
+  transition: border-color 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.exp-item > .exp-row,
+.exp-item > .exp-detail {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.exp-item::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--exp-glow-angle, 0deg),
+    transparent 0%,
+    var(--accent) 12%,
+    #9fc9ec 22%,
+    var(--accent) 32%,
+    transparent 46%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.exp-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -18px rgba(47, 131, 216, 0.45);
+}
+
+.exp-item:hover::before {
+  opacity: 1;
+  animation: exp-glow-spin 2.4s linear infinite;
+}
+
+@keyframes exp-glow-spin {
+  to {
+    --exp-glow-angle: 360deg;
+  }
+}
+
+.exp-item.is-open {
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exp-item,
+  .exp-item::before {
+    transition: none;
+    animation: none;
+  }
+}
+
+.exp-row {
+  width: 100%;
+  display: flex;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.exp-row-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.exp-dots {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.exp-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  display: block;
+}
+
+.exp-switch {
+  flex-shrink: 0;
+  width: 30px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--glass-border);
+  position: relative;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.exp-switch i {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.exp-switch.is-on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.exp-switch.is-on i {
+  transform: translateX(14px);
+  background: var(--accent);
+}
+
+/* 公司名称 + 岗位——取代了原来的"EXPERIENCE 01-08"编号,
+   一眼就能看清"我在哪家公司、做什么岗位",公司名加粗放大。 */
+.exp-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.exp-company-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--text);
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.exp-role-inline {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+}
+
+.exp-year {
+  white-space: nowrap;
+  color: var(--text-faint);
+}
+
+.exp-plus {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.exp-detail {
+  overflow: hidden;
+}
+
+.exp-detail-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 24px;
+  padding: 4px 20px 22px;
+  border-top: 1px dashed var(--glass-border);
+  margin-top: 2px;
+  padding-top: 18px;
+}
+
+.exp-detail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.exp-detail-heading {
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.exp-detail-line {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* KEY PROJECTS 这一列内容比较长,超出高度就在这一列内部滚动看,
+   不会把整个手风琴撑得很长 */
+.exp-detail-projects-col {
+  min-height: 0;
+}
+
+.exp-detail-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.exp-detail-company {
+  color: var(--text-faint);
+}
+
+/* ROLE 和 KEYWORDS 现在叠在同一列里,上下排布 */
+.exp-detail-role-keywords-col {
+  gap: 18px;
+}
+
+.exp-detail-role-block,
+.exp-detail-keywords-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exp-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exp-keyword-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  font-size: 10px;
+}
+
+/* 每条经历最右侧:对应公司/品牌的 logo 徽章。
+   logo 图片本身已经抠掉背景了,这里给一张暖白色卡片当底,
+   不管 logo 是黑色线稿还是彩色,都能看得清楚。 */
+/* 展开后右边那张小图。底板原来是深色(配方形占位 logo),现在三张分别是
+   官网深色首屏、白底 logo、校园实拍 —— 深色板会让首屏那张糊进背景里,
+   所以换成浅底板,图本身再压一圈细边,保证任何一张都有边界。 */
+.exp-detail-thumb {
+  flex-shrink: 0;
+  width: 128px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: var(--radius-s);
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+}
+
+.exp-detail-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--glass-border);
+}
+
+/* 证书卡(目前只有学院奖那条经历):「重点项目」下面一张竖版缩略图 +
+   一行说明,整块是个 button,点了才用 Lightbox 放大看原图。
+   浅蓝虚边框是"这是可以点开的附件"的暗示,和右边那张实心小图区分开。 */
+.exp-cert {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 8px 12px 8px 8px;
+  max-width: 100%;
+  text-align: left;
+  font: inherit;
+  border-radius: var(--radius-s);
+  border: 1px dashed rgba(47, 131, 216, 0.4);
+  background: var(--accent-dim);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.exp-cert:hover {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+  transform: translateY(-1px);
+}
+
+/* 竖版,46x66 的框对着证书 0.707 的比例做的,cover 基本不裁 */
+.exp-cert-thumb {
+  flex-shrink: 0;
+  width: 46px;
+  height: 66px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--glass-border);
+}
+
+.exp-cert-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.exp-cert-label {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.exp-cert-meta,
+.exp-cert-hint {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.exp-cert-meta {
+  color: var(--text-faint);
+}
+
+.exp-cert-hint {
+  color: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .exp-row-top {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .exp-title-block {
+    flex-basis: 100%;
+    order: 1;
+  }
+  .exp-dots {
+    order: 0;
+  }
+  .exp-switch {
+    order: 0;
+  }
+  .exp-year {
+    order: 2;
+    margin-left: 46px;
+  }
+  .exp-plus {
+    order: 3;
+    margin-left: auto;
+  }
+  .exp-company-name {
+    font-size: 15px;
+  }
+  .exp-detail-inner {
+    grid-template-columns: 1fr;
+  }
+  .exp-detail-thumb {
+    width: 128px;
+  }
+}
+
+/* ---- 底部整条工具栏 ---- */
+.profile-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 72px;
+  padding-top: 32px;
+  border-top: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+
+.profile-tools-label,
+.profile-tools-note {
+  line-height: 1.6;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.profile-tools-note {
+  text-align: right;
+}
+
+@media (max-width: 700px) {
+  .profile-tools-row {
+    justify-content: flex-start;
+  }
+  .profile-tools-note {
+    display: none;
+  }
+}

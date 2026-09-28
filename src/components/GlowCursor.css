@@ -1,0 +1,26 @@
+/* 铺满全屏、不挡点击的固定图层 —— 全站鼠标发光拖尾特效
+   关键性能点:
+   - `will-change: transform` 让浏览器把这一层单独提到 GPU 合成层,
+     拖尾动效时不会带动整页重绘
+   - 不要在这里加 `mix-blend-mode`!那会强制浏览器把整页内容当成
+     一个图层跟光晕重新合成,极吃 GPU。当前版本改成在 fragment
+     shader 里直接输出预乘 alpha 的颜色,通过自身的亮度补回视觉差。 */
+.glow-cursor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none; /* 关键:鼠标点击会"穿透"这一层,不影响下面按钮/链接的点击 */
+  overflow: hidden;
+  contain: strict;
+  will-change: transform;
+}
+
+.glow-cursor__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}

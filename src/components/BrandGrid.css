@@ -1,0 +1,359 @@
+/* ------------------------------------------------------------
+   档案式浏览板块:左边一列可以往下滑的档案列表(缩略图 + 标题),
+   右边直接显示当前选中这份企划的内容,不用再点开弹窗看。
+   ------------------------------------------------------------ */
+.brand-archive {
+  /* 整块不再顶满容器:限宽 1080 后居中。1440 视口下从 1344x756 收到 1080x608,
+     一屏塞得下整张卡,四周也留出白;.container 到 1080 以下时这条不起作用。 */
+  max-width: 1080px;
+  margin: 48px auto 0;
+  display: flex;
+  align-items: stretch;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  /* 这张卡是全站最大的 .glass(16:9),底下还铺了 fixed 全屏背景图,
+     backdrop-filter 的 blur(20px) 每帧都要重算背景模糊;鼠标进来
+     触发 .brand-archive-row:hover 改背景色 → 局部重绘 → 整张卡
+     的模糊要重新合成,体感就是"鼠标一进去就卡顿"。
+     卡片本身已经有 --glass-bg 半透明白底铺底,视觉上离够用,
+     把 blur 关掉是最小代价的修法,只动这一张卡不影响其他玻璃卡。 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* -------------------- 左边:档案列表 -------------------- */
+.brand-archive-list {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* flex 项默认 min-width: auto,会被行里那行不换行的长文案顶宽 ——
+     实测加了「账号名 · 标题（数据）」这种长副标题后,左列从 320px 涨到
+     ~480px。压成 0 才会真的锁在 320px,并让行内文案走省略号。 */
+  min-width: 0;
+  border-right: 1px solid var(--glass-border);
+}
+
+.brand-archive-list-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.brand-archive-rows {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.brand-archive-row {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--glass-border);
+  border-left: 3px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.brand-archive-row:hover {
+  background: rgba(27, 51, 72, 0.04);
+}
+
+.brand-archive-row.is-active {
+  background: rgba(47, 131, 216, 0.1);
+  border-left-color: var(--accent);
+}
+
+.brand-archive-row-index {
+  flex: 0 0 auto;
+  width: 20px;
+  color: var(--text-dim);
+}
+
+.brand-archive-row.is-active .brand-archive-row-index {
+  color: var(--accent);
+}
+
+.brand-archive-row-thumb {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.brand-archive-row-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.brand-archive-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.brand-archive-row-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-archive-row.is-active .brand-archive-row-title {
+  color: var(--accent);
+}
+
+.brand-archive-row-sub {
+  font-size: 10px;
+  /* 左列锁在 320px,扣掉序号和缩略图只剩 184px 可用。副标题里现在带着
+     账号名/公司名("九域巴渝·健康生活馆 · 微信公众号运营…"),单行省略号
+     会砍到只剩「九域巴渝·健康生活馆 · 微…」,信息基本没了 —— 所以放开
+     换行,最多两行,分行处由浏览器自然处理。 */
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* -------------------- 右边:当前企划内容 -------------------- */
+.brand-archive-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.brand-archive-main-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* 窄屏放不下时整组换行,而不是把左边那四个字压断成两行 */
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.brand-archive-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.brand-archive-live .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 2px rgba(47, 131, 216, 0.8);
+}
+
+.brand-archive-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.brand-archive-nav button {
+  all: unset;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.brand-archive-nav button:hover,
+.brand-archive-nav button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 真正滚动的地方:里面是整份企划从头拼到尾的长图 */
+.brand-archive-main-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.brand-archive-main-body img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.brand-archive-main-foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.brand-archive-main-foot h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  /* 不换行:否则「公众号运营」这种四字标题会被挤成两行 */
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 底部那行副标题(账号名 + 作品说明)很长,溢出让位给省略号,
+   不要靠换行或把标题/标签挤变形来放下 */
+.brand-archive-main-foot > .mono-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 标签小胶囊同理:保持单行原样,不许被压成两行 */
+.brand-archive-main-foot .chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 顶栏右侧那组:线上入口 + 上一份/下一份 */
+.brand-archive-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* 整块里唯一能点出去的地方(官网的「访问线上站点」/ 公众号的「阅读全文」):
+   做成实心 accent 胶囊 + 一点投影,比旁边那颗描边的翻页按钮显眼一档。
+   字体属性写在这里而不是挂个 .mono-label:后者在 index.css 里,打包后排在
+   这个文件后面,同权重下会把 color 一起盖成 --text-dim(蓝底灰字,看不清)。 */
+.brand-archive-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -6px rgba(47, 131, 216, 0.75);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.brand-archive-link:hover,
+.brand-archive-link:focus-visible {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+  box-shadow: 0 8px 20px -6px rgba(29, 95, 168, 0.85);
+  transform: translateY(-1px);
+}
+
+/* 六篇推文的切换条:点一颗就地换右栏内容(不是跳浏览器),当前那颗实心。
+   只有"一条企划收了好几篇"时才出现,所以独立占一行,不和顶栏那股挤在一起 */
+.brand-archive-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.brand-archive-tabs-label {
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.brand-archive-tab {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.brand-archive-tab:hover,
+.brand-archive-tab:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.brand-archive-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .brand-archive {
+    flex-direction: column;
+    aspect-ratio: auto;
+    height: auto;
+  }
+
+  .brand-archive-list {
+    flex: 0 0 auto;
+    max-height: 280px;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .brand-archive-main-body {
+    height: 420px;
+  }
+
+  .brand-archive-main-foot {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-archive-main-head {
+    padding: 12px 14px;
+  }
+
+  .brand-archive-row {
+    padding: 10px 14px;
+  }
+
+  .brand-archive-main-foot {
+    padding: 12px 14px;
+  }
+}

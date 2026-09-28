@@ -1,0 +1,34 @@
+/* IP 联名策划板块 —— 板块头 + 三张卡
+   ------------------------------------------------------------
+   卡片样式全在 IpCards.css 里,这里只管板块头和卡片组的外边距。
+   原来的手风琴"书架"那几组规则(.ip-accordion .ag-panel …)随组件一起
+   删掉了 —— 书脊在浅色底上读不出来,已改成封面完整的等宽卡片。 */
+
+/* ---- 板块头部(eyebrow + 标题)---- */
+.ip-section-head {
+  margin-bottom: 32px;
+}
+
+.ip-section-desc {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+.ip-cards-wrap {
+  margin-top: 24px;
+}
+
+@media (max-width: 900px) {
+  .ip-section-head {
+    margin-bottom: 22px;
+  }
+  .ip-cards-wrap {
+    margin-top: 16px;
+  }
+  .ip-section-desc {
+    font-size: 13px;
+  }
+}

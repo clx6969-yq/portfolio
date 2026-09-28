@@ -1,0 +1,363 @@
+/* ============================================================
+   全局设计系统 Design Tokens
+   ------------------------------------------------------------
+   这个文件是整个网站的"底色"。所有的颜色、字体、间距、玻璃质感、
+   弹跳动效的基础参数都写在这里。以后想统一调整风格(比如把主色
+   换个色号),只改这里的变量就行,不用去每个组件里改。
+
+   整套配色的出处是背景图 public/placeholders/backgrounds/
+   summer-meadow.jpg —— 天空的蓝、云的留白、草地和树的绿。
+   要再调色,先回去看那张图,从里面取色,不要凭感觉配。
+   ============================================================ */
+
+:root {
+  /* ---- 色系:晴空蓝 + 草地绿,底色是天光白 ---- */
+  --bg: #f2f8fd;               /* 页面底色,天光白(云的留白,偏冷一档) */
+  --bg-soft: #e6f1fa;           /* 次级底色,用于分区之间的过渡 */
+  --bg-elevated: #ffffff;      /* 卡片/面板未加玻璃效果时的底色 */
+  /* 背景图上那层白纱:板块统一盖它,图片依然看得见,但正文永远
+     压在浅底上。想让背景图更"显"就调小,想更安静就调大。
+     从 0.78 压到 0.60 —— 原来的纱太厚,整张草原背景基本被洗成
+     一片死白,滚动时几乎看不出下面是照片。0.60 还留着足够多的
+     白,正文(深墨蓝)的可读性没有损失,但每翻一个板块都能看到
+     云和草地的走向。改这个值请连着 Hero.css 顶部那条渐变的末端
+     一起看:那条渐变的 100% 就是这里,末段几个色标必须仍然
+     单调递增着收进 --bg-veil,否则首屏和第二板块交界会显出一道
+     忽明忽暗的横带。 */
+  --bg-veil: rgba(242, 248, 253, 0.6);
+
+  --text: #1b3348;             /* 主文字,深墨蓝(不用纯黑,和天空同族) */
+  --text-dim: #5b7891;         /* 次要文字/说明文字 */
+  --text-faint: #9bb2c5;       /* 更弱的文字,分割线附近的小字 */
+
+  --accent: #2f83d8;           /* 主强调色:正午晴空的蓝 */
+  --accent-deep: #1d5fa8;      /* 深一档的天空:少量点缀、logo、圆点 */
+  --accent-dim: rgba(47, 131, 216, 0.12);
+  --meadow: #7cb342;           /* 第二强调色:草地的绿,只用在装饰性线条/标记上 */
+  --meadow-deep: #4d8b32;
+
+  --white: #ffffff;
+  --black: #000000;
+
+  /* ---- 玻璃质感(亮色版) ----
+     底色现在是照片,玻璃卡片要稍微再白一点才压得住背景的深浅。 */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(27, 51, 72, 0.12);
+  /* ⚠️ 已知问题:这条声明在 `npm run build` 之后会被 CSS 压缩器删掉
+     (产物里只剩浏览器已不再支持的 -webkit-backdrop-filter),导致
+     .glass / .glass-strong / .btn 的玻璃模糊在线上根本没生效,
+     只有 `npm run dev` 下才是正常的。见 README「已知问题」。
+
+     为什么不顺手修:真开起来是有代价的。实测(同页交替 4 轮、
+     固定滚动区间)——模糊关闭时滚动 96.3fps,开启后 80.1fps,
+     而 blur(10px) 与 blur(20px) 分别是 80.1 / 81.6fps(在噪声内)。
+     也就是说成本来自"固定定位元素每帧重算背景"这件事本身,
+     跟半径大小无关,调小半径没有意义。 */
+  --glass-blur: blur(20px) saturate(150%);
+
+  /* ---- 版心宽度(PC端展示核心尺寸) ---- */
+  --content-width: 1700px;
+  --gutter: 48px;
+
+  /* ---- 圆角 ---- */
+  --radius-s: 8px;
+  --radius-m: 16px;
+  --radius-l: 28px;
+
+  /* ---- 字体(全部本地化,不再请求 Google Fonts) ----
+     字体文件与 @font-face 定义在 src/fonts.css,由 src/main.jsx 引入。
+     · 拉丁字母/数字:Caveat / Unbounded / Space Mono 三个字体族的 latin
+       子集已自托管在 public/fonts/(9 个 woff2、约 396 KB),字体栈里写名字
+       就会命中,不需要联网。
+     · 中文:Noto Sans SC 是 CJK 字体,单一个字重就是好几 MB,自托管不现实,
+       所以中文直接走系统字体(PingFang SC / Microsoft YaHei / 思源黑体)。
+       这些字体字形与 Noto Sans SC 接近,而且用户机器上本来就有,零下载。
+       取舍:不同系统上中文的字宽/行高会有极细微差别,这是可接受的。
+     · 栈里保留 "Noto Sans SC" 只是为了"本机装了就用",它已不再联网下载。
+       以前这里的第一回退是 Zen Kaku Gothic New(日文字体),缺 "灵 / 潇"
+       这类简体字,同一个标题里一部分字用它、另一部分回退系统字体,字形
+       明显不一样,看上去就像"乱码"。现在中文回退链上全是 CJK 字体,全站
+       中文只有一套字形。
+     注意:这些字体栈请保持与 html lang="zh-CN" 一致,不要在中途插入
+     只含拉丁字形的字体(比如 Anton),否则又会出现中英混排。 */
+  --font-hero: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; /* 首页大标题:粗黑体 */
+  --font-display: "Unbounded", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; /* 超大标题:拉丁用 Unbounded */
+  --font-mono: "Space Mono", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", monospace;    /* 导航/标签/编号:拉丁用 Space Mono */
+  --font-cjk: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;  /* 中文正文 */
+
+  /* ---- 弹跳动效的统一参数(配合 framer-motion 使用) ---- */
+  --bounce-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  /* 这里不放 `scroll-behavior: smooth` —— 一旦放在 css 里,
+     即便 JS 里写 `scrollTo({behavior: "instant"})`,部分浏览器
+     仍会被这条 css 强制按平滑动画执行。结果是:从开屏切到首页时,
+     浏览器会从原位置"滑"到顶部,看上去就像被卡在了页面中间。
+     锚点链接的平滑滚动改在 Nav.jsx 里用 JS 显式调用 scrollIntoView
+     实现,效果一样但不会被这条全局规则误伤。 */
+}
+
+body {
+  margin: 0;
+  /* 故意不上底色:全站背景图是 .site-backdrop 那个 position:fixed +
+     z-index:-1 的图层,而 body 的背景会画在负 z-index 图层*上面*
+     (CSS 绘制顺序:负 z-index 子层 → 普通流块级背景),一旦这里
+     给了不透明底色,背景图就整块被盖掉了。兜底底色留在 html 上。 */
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-cjk);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ============================================================
+   全站背景图
+   ------------------------------------------------------------
+   固定铺满视口、不随内容滚动,所以整站像隔着一扇窗在看这片草原:
+   首屏(hero)完整露出,往下各板块用 --bg-veil 盖一层白纱保证
+   正文可读。图片路径由 App.jsx 通过 publicAsset() 注入,这样
+   子路径部署(base)时也不会失效。 */
+.site-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg); /* 图片还没解码出来时的兜底 */
+  background-size: cover;
+  background-position: center 40%; /* 偏上一点,保住天空和云,别把草地裁掉 */
+  background-repeat: no-repeat;
+}
+
+/* 细腻噪点纹理,叠在最上层,让大片浅色不至于显得死板、廉价 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* 滚动条:细一点,滑块用主色,呼应晴空的蓝 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent-deep);
+  border-radius: 8px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--white);
+}
+
+/* ============================================================
+   通用布局
+   ============================================================ */
+
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.section {
+  position: relative;
+  /* 板块之间的衔接处还是显得太空、太割裂——从 96px 再收紧到
+     64px。这是全站所有板块通用的间距,改这一个数字,每两个板块
+     交界的地方都会统一变得更紧凑、更均匀。 */
+  padding: 64px 0;
+}
+
+.section-full {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 正文板块统一盖白纱(见 --bg-veil 的说明)。首屏 hero 故意不加,
+   让背景图在进入网站的第一眼完整露出来;下面的板块文字密集,
+   需要稳定的浅底。 */
+.section,
+.section-full {
+  background: var(--bg-veil);
+}
+
+/* 每个模块顶部的小标签,比如 "01 — SELECTED WORK" / "09 — 影视创作"
+   ------------------------------------------------------------
+   颜色从 --text-dim(#5b7891) 换成 --accent-deep(#1d5fa8) 并加粗:
+   这行字只有 13px,又带 0.18em 的大字距,原来的灰蓝压在浅浅的
+   天空白上几乎化开(尤其是几节连在一起往下滚的时候)。
+   换成正午蓝的深一档,和旁边那颗发光圆点同一个色系,标注感更明确,
+   但字重适中、字号不变,仍然压得住下面的超大标题。 */
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+  margin-bottom: 24px;
+}
+
+/* 有几个板块的 eyebrow 是 <div className="section-eyebrow mono-label">
+   (CharacterBuild 等)。.mono-label 也定义了 color,两边的权重一样,
+   谁赢只看打包后的源码顺序 —— 实测 .mono-label 排在后面,会把上面
+   那条 accent-deep 又盖回灰蓝。多带一级类名(0,2,0 > 0,1,0),
+   不管顺序如何都稳拿。 */
+.section-eyebrow.mono-label {
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.section-eyebrow .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px 2px var(--accent);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 5vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.section-title .cjk {
+  display: block;
+  font-family: var(--font-cjk);
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: none;
+  margin-top: 14px;
+}
+
+/* ============================================================
+   玻璃卡片 Glassmorphism —— 全站卡片的通用质感
+   ============================================================ */
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-m);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-m);
+}
+
+/* ============================================================
+   按钮 / 交互元素
+   ============================================================ */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.btn-solid {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+}
+
+.chip.is-active {
+  color: var(--white);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+@media (max-width: 900px) {
+  :root {
+    --gutter: 22px;
+  }
+  .section {
+    padding: 48px 0;
+  }
+}
